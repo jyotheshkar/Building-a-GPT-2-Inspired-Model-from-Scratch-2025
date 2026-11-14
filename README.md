@@ -1,4 +1,4 @@
-# Creating-a-Large-Language-Model-from-Scratch
+# Creating-a-Large-Language-Model-from-Scratch-2025
 
 ## Architecture and maintenance
 
@@ -109,3 +109,5 @@ Refer to the diagram (`gpt_architecture.png`) for a visual representation of the
 ## Usage
 
 This repository is a learning-focused implementation of GPT. For full-scale deployment or optimization, consider additional techniques like mixed-precision training, parallelism, and dataset-specific fine-tuning.
+
+**Year provenance:** The `2025` suffix records this repository's creation year (created 2025-01-20). Later maintenance retains its own dates.
