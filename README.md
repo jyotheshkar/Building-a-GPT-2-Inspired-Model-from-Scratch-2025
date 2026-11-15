@@ -1,113 +1,80 @@
-# Creating-a-Large-Language-Model-from-Scratch-2025
+# Building a GPT-2-Inspired Model from Scratch
 
-## Architecture and maintenance
+**GPT Scratch Lab** is an offline desktop application and Python package for learning how a small character-level GPT-style model trains and generates text. Load a UTF-8 corpus, train a tiny CPU model, inspect progress, generate characters, and save or reopen a checkpoint containing the model configuration, vocabulary and weights.
 
-[Technical architecture, source boundaries, scalability decisions and verification](docs/ARCHITECTURE_MAINTENANCE.md) documents the current implementation and its limits. Maintenance dated 11 November 2026 is separate from the original study or project work.
+The maintained decoder uses GPT-2-inspired pre-layer normalization, causal attention, GELU blocks and learned positions. It has a small character vocabulary and laptop-sized defaults. It is an educational model trained locally, with no OpenAI API key or pretrained GPT-2 weights required.
 
-### Reproducible CPU smoke check
+## Download and use
 
-```bash
+Open [desktop release 1.0.0](https://github.com/jyotheshkar/Creating-a-Large-Language-Model-from-Scratch-2025/releases/tag/desktop-v1.0.0) and choose your computer's package:
+
+| Computer | Native package |
+| --- | --- |
+| Windows 10/11 x64 | `GPTScratchLab-windows-x64.zip` |
+| Ubuntu 22.04+ x64 | `GPTScratchLab-linux-x64.tar.gz` |
+| macOS 15+ Apple silicon | `GPTScratchLab-macos-arm64.zip` |
+
+Extract the complete archive and open the application inside its `GPTScratchLab` folder. The native packages include Python, CPU PyTorch and the desktop runtime. Follow the [download, launch and checksum instructions](docs/DOWNLOADS.md). Windows packages are unsigned; macOS packages have an ad-hoc signature without Developer ID or notarization.
+
+The release also provides a Python wheel and source distribution for people who want to inspect or extend the implementation. These are GitHub release assets; publication to PyPI is not claimed.
+
+## First session
+
+1. Open the desktop application and select the bundled demonstration text or your own UTF-8 text file.
+2. Start with the Tiny CPU settings and a short training run. Training progress appears while the window remains responsive; **Cancel** stops between updates.
+3. Enter a prompt using characters present in the selected corpus, or leave it empty for a known-vocabulary start.
+4. Generate text, save a checkpoint, or export the generated text. A saved checkpoint can be reopened in a later session.
+
+The demonstration corpus is an original synthetic execution fixture. A short run proves that training and sampling execute; fluent writing, factual answers and language-model quality are not promised. Training a capable large model requires a different data and compute scale.
+
+## Python quickstart
+
+Use Python 3.11 and a virtual environment. On Windows:
+
+```powershell
 python -m venv .venv
-. .venv/bin/activate
-python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
-python scripts/notebook_smoke.py
+.\.venv\Scripts\python.exe -m pip install torch==2.15.0 --index-url https://download.pytorch.org/whl/cpu
+.\.venv\Scripts\python.exe -m pip install .
+.\.venv\Scripts\python.exe -m gpt_scratch_lab gui
 ```
 
-Run notebooks from the repository root. The default `data/sample.txt` is an original synthetic fixture; set `LLM_CORPUS=/absolute/path/to/your/licensed.txt` to use your own corpus. Full training retains the notebook iteration settings and is separate from the tiny CPU smoke check.
+On macOS/Linux:
 
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install torch==2.15.0 --index-url https://download.pytorch.org/whl/cpu
+.venv/bin/python -m pip install .
+.venv/bin/python -m gpt_scratch_lab gui
+```
 
+Source installations need a working Tkinter runtime for the GUI. The command line can be used without opening the desktop window:
 
-# GPT Architecture Overview
+```sh
+python -m gpt_scratch_lab demo
+python -m gpt_scratch_lab train --corpus my-text.txt --steps 100 --output my-model.pt
+python -m gpt_scratch_lab generate my-model.pt --tokens 64
+python -m gpt_scratch_lab --help
+```
 
-This repository contains an implementation of a GPT architecture with a focus on understanding the components and flow of a Transformer-based model. The core concept revolves around attention mechanisms, particularly the scaled dot-product attention, which is essential to GPT's functionality.
+See the command-specific help for training on a text file, selecting an output checkpoint, and generating from a saved checkpoint. Downloaded wheel installation and the native application's requirements are explained in [DOWNLOADS.md](docs/DOWNLOADS.md).
 
----
+## Learning sources and original work
 
-## Key Components
+- Andrej Karpathy: [Let's build GPT: from scratch, in code, spelled out](https://www.youtube.com/watch?v=kCc8FmEb1nY), [lecture repository](https://github.com/karpathy/ng-video-lecture), and [nanoGPT](https://github.com/karpathy/nanoGPT).
+- Direct historical notebook lineage: Elliot Arledge's [freeCodeCamp course](https://www.youtube.com/watch?v=UU1WVnMk4E8) and [source repository](https://github.com/Infatoshi/fcc-intro-to-llms).
+- The retained [bigram notebook](bigram.ipynb) and [GPT study notebook](gpt-v1%20%283%29.ipynb) preserve the earlier learning path. Exact originals, including historical outputs, are archived with hashes under [legacy](legacy/notebooks-before-desktop-2026-11-15/).
 
-### 1. **Input Processing**
-   - **Tokenized Inputs**: The raw input text is tokenized into numerical representations.
-   - **Embedding + Positional Encodings**: Tokens are embedded into dense vectors, with positional encodings added to retain sequence information.
+[Learning evidence and attribution](docs/LEARNING_EVIDENCE.md) distinguishes source lineage, study references, retained artifacts and newly added release features. A repository or video reference is not a course-completion certificate.
 
----
+## Engineering documentation
 
-### 2. **Decoder Blocks**
-   The architecture uses a stack of decoders (`n_layers`), where each decoder block comprises:
-   - **Multihead Attention**:
-     - Queries (Q), Keys (K), and Values (V) are computed.
-     - Scaled Dot Product Attention is applied:
-       - Dot product between Q and K is scaled.
-       - Optional masking with `torch.tril` for causal attention.
-       - Softmax normalization followed by matrix multiplication with V.
-       - Outputs represent a blend of input vectors weighted by attention.
-     - Multihead attention combines multiple attention heads, enabling the model to capture diverse semantic information.
-   - **Residual Connection and Normalization**:
-     - Results are passed through a residual connection and normalized.
-   - **Feed Forward Layer**:
-     - A two-layer network with:
-       - Linear transformation.
-       - ReLU activation.
-       - Final linear transformation.
+| Document | Purpose |
+| --- | --- |
+| [Architecture](docs/ARCHITECTURE.md) | Model/data flow, module boundaries and laptop limits |
+| [Verification](docs/VERIFICATION.md) | Model, checkpoint, notebook and extracted-application checks |
+| [Provenance](docs/PROVENANCE.md) | Source commits, preserved artifacts and dated maintenance |
+| [Download guide](docs/DOWNLOADS.md) | Supported targets, launch, checksums and recovery |
+| [Native build guide](packaging/BUILDING.md) | Build environment, notices and release procedure |
+| [Licence scope](LICENSE-SCOPE.md) | Maintained package versus historical/third-party material |
 
----
-
-### 3. **Output Processing**
-   - **Linear Layer**: Maps the outputs of the decoder stack to logits.
-   - **Softmax**: Converts logits into probabilities for token generation.
-   - **Sampling & Backpropagation**:
-     - Probabilities are used for token sampling and generation.
-     - Target outputs are compared to generated outputs, and backpropagation is performed to minimize the loss.
-
----
-
-## Attention Mechanism Breakdown
-
-### **Scaled Dot-Product Attention**
-   - Formula: 
-     ```
-     Attention(Q, K, V) = Softmax((QK^T) / sqrt(d_k)) * V
-     ```
-   - Steps:
-     1. Dot product between Q and K.
-     2. Scale by `1/sqrt(length of Q/K rows)`.
-     3. Apply optional masking (e.g., `torch.tril`).
-     4. Normalize with Softmax.
-     5. Multiply with V.
-
-### **Multihead Attention**
-   - Combines several attention heads.
-   - Each head focuses on a unique semantic aspect.
-   - Outputs from heads are concatenated and passed through a linear layer.
-
----
-
-## Training Workflow
-
-1. Tokenized inputs are passed through the embedding and positional encodings layer.
-2. Inputs go through multiple decoder blocks, each refining the representation.
-3. Final decoder outputs are passed to a linear layer.
-4. Softmax is applied for token generation.
-5. Loss is computed by comparing generated tokens with target tokens.
-6. Backpropagation optimizes the model.
-
----
-
-## Diagram
-
-Refer to the diagram (`gpt_architecture.png`) for a visual representation of the workflow.
-
----
-
-## Notes
-
-- **Post-Normalization Technique**: Residual connections are normalized after each layer.
-- **Flexible Decoder Stack**: The number of decoder blocks (`n_layers`) can be adjusted based on the model size.
-- **Causal Masking**: Ensures that future tokens are not attended to during training.
-
----
-
-## Usage
-
-This repository is a learning-focused implementation of GPT. For full-scale deployment or optimization, consider additional techniques like mixed-precision training, parallelism, and dataset-specific fine-tuning.
-
-**Year provenance:** The `2025` suffix records this repository's creation year (created 2025-01-20). Later maintenance retains its own dates.
+The `2025` suffix records the repository's creation year, **20 January 2025**. Desktop/package engineering is dated **15 November 2026**.

@@ -1,0 +1,154 @@
+name: GPT Scratch Lab desktop release
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gpt-desktop-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-plan:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    outputs:
+      build: ${{ steps.plan.outputs.build }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Syntax and release safety guards
+        run: |
+          python -m compileall -q src tests packaging
+          python -m unittest discover -s packaging -p 'test_*.py' -v
+      - name: Plan a new version or verify the published version
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python packaging/release_gate.py --source-sha ${{ github.sha }} --github-output "$GITHUB_OUTPUT"
+
+  python-distributions:
+    needs: release-plan
+    if: needs.release-plan.outputs.build == 'true'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: packaging/requirements-build.txt
+      - name: Prepare Linux display and Tk runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth tk8.6
+      - name: Install official CPU runtime and pinned build tools
+        run: |
+          python -m pip install torch==2.15.0 --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -r packaging/requirements-build.txt
+      - name: Source model and GUI contracts
+        run: xvfb-run -a -s '-screen 0 1280x1024x24' python -m unittest discover -s tests -v
+      - name: Build sdist and wheel, then exercise the installed wheel
+        run: xvfb-run -a -s '-screen 0 1280x1024x24' python packaging/build_python.py --source-sha ${{ github.sha }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-distributions
+          path: release-assets/*
+          if-no-files-found: error
+          retention-days: 14
+
+  native-build:
+    needs: [release-plan, python-distributions]
+    if: needs.release-plan.outputs.build == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: windows-x64
+            runner: windows-2022
+            python_arch: x64
+          - target: linux-x64
+            runner: ubuntu-22.04
+            python_arch: x64
+          - target: macos-arm64
+            runner: macos-15
+            python_arch: arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          architecture: ${{ matrix.python_arch }}
+          cache: pip
+          cache-dependency-path: packaging/requirements-build.txt
+      - name: Prepare Linux display and Tk runtime
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth tk8.6
+      - name: Install official CPU runtime and pinned build tools
+        run: |
+          python -m pip install torch==2.15.0 --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -r packaging/requirements-build.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-distributions
+          path: python-dist
+      - name: Install the wheel verified by this exact workflow
+        run: python packaging/install_wheel.py --source-sha ${{ github.sha }} --assets python-dist
+      - name: Build and verify extracted Linux application
+        if: runner.os == 'Linux'
+        run: xvfb-run -a -s '-screen 0 1280x1024x24' python packaging/build_desktop.py --target ${{ matrix.target }} --source-sha ${{ github.sha }}
+      - name: Build and verify extracted Windows or macOS application
+        if: runner.os != 'Linux'
+        run: python packaging/build_desktop.py --target ${{ matrix.target }} --source-sha ${{ github.sha }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.target }}
+          path: release-assets/*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository_id == '919738589' && needs.release-plan.outputs.build == 'true'
+    needs: [release-plan, python-distributions, native-build]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: desktop-*
+          path: release-assets
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: python-distributions
+          path: release-assets
+      - name: Publish the exact-source release after every target passes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python packaging/publish_release.py --source-sha ${{ github.sha }} --assets release-assets

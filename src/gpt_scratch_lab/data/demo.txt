@@ -1,0 +1,16 @@
+This is an original synthetic corpus for the GPT Scratch Lab execution demo.
+A lantern shines over a quiet desk. Mira opens a notebook and records a short idea.
+The model reads characters, learns local patterns, and predicts the next character.
+In the workshop, a small robot sorts copper rings and blue glass beads into trays.
+Each tray has a label. A sensor checks the label before the robot moves the next bead.
+Beyond the window, rain taps on the roof and the garden path reflects the evening sky.
+Mira writes a question, tests a small program, and compares its result with her notes.
+One experiment changes a single setting. Another experiment repeats the same setting.
+Clear records help the builder tell a measured result from a hopeful guess.
+The character model begins with random weights. It has no facts, chat training, or pretrained knowledge.
+Training this tiny fixture checks that the program works; it does not prove language quality.
+A useful learning exercise supplies a larger, licensed text and keeps an independent evaluation set.
+At the end of the session, Mira saves the model, its character vocabulary, and its configuration together.
+When she opens the saved experiment, every token keeps the same meaning as before.
+The robot returns the empty trays to the shelf. The lantern stays on for one final line.
+Small experiments are easier to understand when their limits and sources are visible.

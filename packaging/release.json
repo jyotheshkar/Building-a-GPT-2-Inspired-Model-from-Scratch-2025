@@ -1,0 +1,18 @@
+{
+  "application": "GPT Scratch Lab",
+  "executable": "GPTScratchLab",
+  "repository_id": 919738589,
+  "version": "1.0.0",
+  "tag": "desktop-v1.0.0",
+  "python": "3.11",
+  "distribution": {
+    "name": "gpt-scratch-lab",
+    "wheel": "gpt_scratch_lab-1.0.0-py3-none-any.whl",
+    "sdist": "gpt_scratch_lab-1.0.0.tar.gz"
+  },
+  "platforms": {
+    "windows-x64": {"runner": "windows-2022", "system": "Windows", "machine": "AMD64", "archive": "GPTScratchLab-windows-x64.zip", "executable_path": "GPTScratchLab/GPTScratchLab.exe"},
+    "linux-x64": {"runner": "ubuntu-22.04", "system": "Linux", "machine": "x86_64", "archive": "GPTScratchLab-linux-x64.tar.gz", "executable_path": "GPTScratchLab/GPTScratchLab"},
+    "macos-arm64": {"runner": "macos-15", "system": "Darwin", "machine": "arm64", "archive": "GPTScratchLab-macos-arm64.zip", "executable_path": "GPTScratchLab/GPTScratchLab.app/Contents/MacOS/GPTScratchLab"}
+  }
+}

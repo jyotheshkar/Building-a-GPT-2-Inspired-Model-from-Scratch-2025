@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools==84.2.1", "wheel==0.48.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gpt-scratch-lab"
+version = "1.0.0"
+description = "Offline GPT-2-inspired character language-model learning lab"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE", "LICENSE-SCOPE.md", "THIRD_PARTY_NOTICES.md"]
+authors = [{name = "Jyothesh Karnam"}]
+dependencies = ["torch==2.15.0", "numpy==2.4.6"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.scripts]
+gpt-scratch-lab = "gpt_scratch_lab.cli:main"
+
+[project.gui-scripts]
+gpt-scratch-lab-desktop = "gpt_scratch_lab.gui:main"
+
+[project.urls]
+Repository = "https://github.com/jyotheshkar/Creating-a-Large-Language-Model-from-Scratch-2025"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["gpt_scratch_lab*"]
+
+[tool.setuptools.package-data]
+gpt_scratch_lab = ["data/*.txt"]

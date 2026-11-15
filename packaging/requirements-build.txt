@@ -1,0 +1,7 @@
+# Install Torch separately using its official CPU index.
+numpy==2.4.6
+pyinstaller==6.22.3
+pyinstaller-hooks-contrib==2026.10
+build==1.6.1
+setuptools==84.2.1
+wheel==0.48.0
