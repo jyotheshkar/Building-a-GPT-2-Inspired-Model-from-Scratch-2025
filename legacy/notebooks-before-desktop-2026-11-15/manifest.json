@@ -1,0 +1,27 @@
+{
+  "source_commit": "604c7fe749c9687b3abf979262de6d4ef395cdeb",
+  "captured_on": "2026-11-15",
+  "files": [
+    {
+      "path": "bigram.ipynb",
+      "archived_path": "legacy/notebooks-before-desktop-2026-11-15/bigram.ipynb",
+      "bytes": 13581,
+      "sha256": "966304f9d0818910bb5caa6fa743b5d9be4e816ff5ab2733b4f1cdb69b902b25",
+      "git_blob_sha": "079faac1ca7e2a656cbd6f5036794c2b88a9f83f"
+    },
+    {
+      "path": "gpt-v1 (3).ipynb",
+      "archived_path": "legacy/notebooks-before-desktop-2026-11-15/gpt-v1 (3).ipynb",
+      "bytes": 64379,
+      "sha256": "b15699d489b338a78a9d95c863f7f1fcd7f9b04d34c267190ee7440c107d6b27",
+      "git_blob_sha": "23f6e357ddc0b3614fce3935c296c0ee7295fc47"
+    },
+    {
+      "path": "data/sample.txt",
+      "archived_path": "legacy/notebooks-before-desktop-2026-11-15/data/sample.txt",
+      "bytes": 5490,
+      "sha256": "a7d9acf064b188fcc5f67c756a8ee7cdf08f574cf98a5e1a4d1092f0fcc101ca",
+      "git_blob_sha": "9e014fc0873c7c13a44c86eb9a4919b2915e38f0"
+    }
+  ]
+}

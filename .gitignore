@@ -3,3 +3,10 @@ __pycache__/
 .venv/
 .env
 *.tmp
+build/
+dist/
+release-assets/
+*.egg-info/
+*.pt
+*.pth
+*.gptlab

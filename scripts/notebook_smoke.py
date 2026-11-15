@@ -3,6 +3,8 @@
 This is a shape/gradient/causal-mask smoke check, not a quality benchmark.
 """
 import ast
+import contextlib
+import io
 import json
 from pathlib import Path
 import torch
@@ -13,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def check_notebook(name, class_name):
     torch.manual_seed(42)
-    nb = json.loads((ROOT / name).read_text())
+    nb = json.loads((ROOT / name).read_text(encoding='utf-8'))
     namespace = dict(torch=torch, nn=nn, F=F, device='cpu', block_size=8,
                      batch_size=2, n_embd=16, n_head=2, n_layer=1, dropout=0.0)
     definitions = []
@@ -31,6 +33,13 @@ def check_notebook(name, class_name):
     assert torch.isfinite(loss)
     loss.backward()
     assert any(p.grad is not None for p in model.parameters())
+    observed_grad_modes = []
+    hook = model.register_forward_hook(lambda *_: observed_grad_modes.append(torch.is_grad_enabled()))
+    model.train()
+    model.generate(x[:, :1], max_new_tokens=2)
+    hook.remove()
+    assert model.training, 'generation did not restore training mode'
+    assert observed_grad_modes and not any(observed_grad_modes), 'generation tracked autograd'
     model.eval()
     with torch.no_grad():
         generated = model.generate(x[:, :1], max_new_tokens=3)
@@ -50,8 +59,24 @@ def check_notebook(name, class_name):
         pass
     else:
         raise AssertionError('unknown split silently accepted')
-    print(f'{name}: forward, backward, generation, causal and batch checks passed')
+    if class_name == 'GPTLanguageModel':
+        corpus = (ROOT / 'data/sample.txt').read_text(encoding='utf-8')
+        chars = sorted(set(corpus))
+        mapping = {char: index for index, char in enumerate(chars)}
+        namespace.update(text=corpus, encode=lambda text: [mapping[char] for char in text],
+                         decode=lambda ids: ''.join(chars[index] for index in ids),
+                         m=namespace[class_name](vocab_size=len(chars)))
+        generation_cell = next(''.join(cell['source']) for cell in nb['cells']
+                               if cell['cell_type'] == 'code'
+                               and 'prompt =' in ''.join(cell['source'])
+                               and 'generated_chars =' in ''.join(cell['source']))
+        with contextlib.redirect_stdout(io.StringIO()):
+            exec(compile(generation_cell, name, 'exec'), namespace)
+        assert namespace['prompt'] and set(namespace['prompt']).issubset(mapping)
+        assert len(namespace['generated_chars']) == len(namespace['prompt']) + 100
+    print(f'{name}: forward, backward, inference mode, generation, causal and batch checks passed')
 
 if __name__ == '__main__':
+    torch.set_num_threads(1)
     check_notebook('bigram.ipynb', 'BigramLanguageModel')
     check_notebook('gpt-v1 (3).ipynb', 'GPTLanguageModel')

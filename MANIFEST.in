@@ -1,0 +1,11 @@
+include LICENSE LICENSE-SCOPE.md THIRD_PARTY_NOTICES.md README.md pyproject.toml
+recursive-include src/gpt_scratch_lab *.py *.txt
+recursive-include tests *.py
+recursive-include docs *.md
+recursive-include packaging *.py *.json *.spec *.txt *.md
+global-exclude *.ipynb *.mp4 *.png *.pyc
+prune legacy
+prune originals
+prune build
+prune dist
+prune release-assets
